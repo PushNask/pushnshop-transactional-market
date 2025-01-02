@@ -7,8 +7,10 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { Login } from "@/pages/auth/Login";
 import { SignUp } from "@/pages/auth/SignUp";
 import { SellerRoute } from "@/components/auth/ProtectedRoute";
+import { AdminRoute } from "@/components/auth/AdminRoute";
 import Index from "./pages/Index";
 import SellerDashboard from "./pages/seller/SellerDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,14 @@ const App = () => (
                 <SellerRoute>
                   <SellerDashboard />
                 </SellerRoute>
+              }
+            />
+            <Route
+              path="/admin/*"
+              element={
+                <AdminRoute>
+                  <AdminDashboard />
+                </AdminRoute>
               }
             />
           </Routes>
