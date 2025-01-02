@@ -5,7 +5,7 @@ interface Admin {
   id: string;
   name: string;
   created_at: string;
-  is_super_admin: boolean;
+  is_super_admin: boolean | null;
 }
 
 export const AdminList = () => {

@@ -96,6 +96,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
+          is_super_admin: boolean | null
           is_verified: boolean | null
           name: string
           rating: number | null
@@ -107,6 +108,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id: string
+          is_super_admin?: boolean | null
           is_verified?: boolean | null
           name: string
           rating?: number | null
@@ -118,6 +120,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
+          is_super_admin?: boolean | null
           is_verified?: boolean | null
           name?: string
           rating?: number | null
