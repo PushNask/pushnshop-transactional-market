@@ -100,6 +100,7 @@ export type Database = {
           name: string
           rating: number | null
           response_time: string | null
+          role: string
           shipping_options: Json | null
           whatsapp_number: string | null
         }
@@ -110,6 +111,7 @@ export type Database = {
           name: string
           rating?: number | null
           response_time?: string | null
+          role?: string
           shipping_options?: Json | null
           whatsapp_number?: string | null
         }
@@ -120,6 +122,7 @@ export type Database = {
           name?: string
           rating?: number | null
           response_time?: string | null
+          role?: string
           shipping_options?: Json | null
           whatsapp_number?: string | null
         }
