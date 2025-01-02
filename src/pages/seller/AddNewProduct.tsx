@@ -1,11 +1,31 @@
-import React, { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, ChangeEvent } from 'react';
+import { AlertCircle, CheckCircle } from 'lucide-react';
+
+interface FormData {
+  title: string;
+  description: string;
+  price: string;
+  currency: string;
+  category: string;
+  condition: string;
+  listingType: string;
+  duration: string;
+  paymentMethod: string;
+  images: File[];
+  shippingOptions: {
+    pickup: boolean;
+    shipping: boolean;
+  };
+  location: string;
+}
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 const AddNewProduct = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     title: '',
     description: '',
     price: '',
@@ -23,9 +43,9 @@ const AddNewProduct = () => {
     location: ''
   });
 
-  const [imagePreviewUrls, setImagePreviewUrls] = useState([]);
+  const [imagePreviewUrls, setImagePreviewUrls] = useState<string[]>([]);
 
-  const categories = [
+  const categories: Category[] = [
     { id: 'home', name: 'Home & Furniture' },
     { id: 'building', name: 'Building Materials & Hardware' },
     { id: 'automotive', name: 'Automotive & Transportation' },
@@ -43,7 +63,7 @@ const AddNewProduct = () => {
     { id: 'containers', name: 'Containers' }
   ];
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -51,25 +71,28 @@ const AddNewProduct = () => {
     }));
   };
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length + formData.images.length > 7) {
+  const handleImageUpload = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const fileArray = Array.from(files);
+    if (fileArray.length + formData.images.length > 7) {
       alert('Maximum 7 images allowed');
       return;
     }
 
     // Create preview URLs
-    const newPreviewUrls = files.map(file => URL.createObjectURL(file));
+    const newPreviewUrls = fileArray.map(file => URL.createObjectURL(file));
     setImagePreviewUrls(prev => [...prev, ...newPreviewUrls]);
 
     // Add files to form data
     setFormData(prev => ({
       ...prev,
-      images: [...prev.images, ...files]
+      images: [...prev.images, ...fileArray]
     }));
   };
 
-  const removeImage = (index) => {
+  const removeImage = (index: number) => {
     const newImages = [...formData.images];
     newImages.splice(index, 1);
     
@@ -84,7 +107,7 @@ const AddNewProduct = () => {
     setImagePreviewUrls(newPreviewUrls);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     console.log('Form data:', formData);
     // TODO: Upload images to storage
