@@ -3,6 +3,7 @@ import { AlertCircle, Loader2, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { supabase } from '@/integrations/supabase/client';
 
 const AdminManagement = () => {
   const [admins, setAdmins] = useState<any[]>([]);
@@ -22,9 +23,9 @@ const AdminManagement = () => {
 
   const fetchAdmins = async () => {
     try {
-      const { data, error } = await window.supabase
-        .from('profiles')
-        .select('id, email, created_at, created_by')
+      const { data, error } = await supabase
+        .from('seller_profiles')
+        .select('id, email, created_at')
         .eq('role', 'admin')
         .order('created_at', { ascending: false });
 
@@ -59,7 +60,7 @@ const AdminManagement = () => {
 
     try {
       // Create the new admin user
-      const { data: { user }, error: signUpError } = await window.supabase.auth.signUp({
+      const { data: { user }, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
       });
@@ -67,18 +68,16 @@ const AdminManagement = () => {
       if (signUpError) throw signUpError;
 
       // Get current user for created_by field
-      const { data: { user: currentUser } } = await window.supabase.auth.getUser();
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
 
       // Create admin profile
-      const { error: profileError } = await window.supabase
-        .from('profiles')
+      const { error: profileError } = await supabase
+        .from('seller_profiles')
         .insert([
           {
             id: user.id,
-            email: formData.email,
+            name: formData.email.split('@')[0],
             role: 'admin',
-            created_at: new Date().toISOString(),
-            created_by: currentUser?.id
           }
         ]);
 
