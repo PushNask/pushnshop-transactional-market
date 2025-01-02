@@ -1,5 +1,6 @@
 import { Container } from "@/components/ui/Container";
 import { Search, ShoppingBag, User } from "lucide-react";
+import { MainNav } from "./NavigationMenu";
 
 export const Navbar = () => {
   return (
@@ -11,17 +12,7 @@ export const Navbar = () => {
               <img src="/lovable-uploads/d2eb9101-0bb7-4e43-9a47-ac3fa2c683f1.png" alt="PushNshop" className="h-8 w-8" />
               <span className="text-xl font-semibold">PushNshop</span>
             </a>
-            <nav className="hidden md:flex items-center gap-6">
-              <a href="/categories" className="text-sm font-medium hover:text-primary transition-colors">
-                Categories
-              </a>
-              <a href="/featured" className="text-sm font-medium hover:text-primary transition-colors">
-                Featured
-              </a>
-              <a href="/sell" className="text-sm font-medium hover:text-primary transition-colors">
-                Sell
-              </a>
-            </nav>
+            <MainNav />
           </div>
           <div className="flex items-center gap-4">
             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
