@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, Link } from 'react-router-dom';
+import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -12,10 +12,16 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { signIn, user } = useAuth();
+  const { signIn, user, userRole } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    const from = location.state?.from || '/';
+    if (userRole === 'seller') {
+      return <Navigate to="/seller" replace />;
+    }
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -6,7 +6,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Login } from "@/pages/auth/Login";
 import { SignUp } from "@/pages/auth/SignUp";
+import { SellerRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
+import SellerDashboard from "./pages/seller/SellerDashboard";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +23,14 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/" element={<Index />} />
+            <Route
+              path="/seller/*"
+              element={
+                <SellerRoute>
+                  <SellerDashboard />
+                </SellerRoute>
+              }
+            />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
