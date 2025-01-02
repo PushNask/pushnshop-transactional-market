@@ -23,6 +23,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
+  const createSellerProfile = async (userId: string) => {
+    const { error } = await supabase
+      .from('seller_profiles')
+      .insert([
+        { 
+          id: userId,
+          name: user?.email?.split('@')[0] || 'User',
+          role: 'user'
+        }
+      ]);
+    
+    if (error && error.code !== '23505') { // Ignore unique violation errors
+      console.error('Error creating seller profile:', error);
+    }
+  };
+
+  const fetchUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('seller_profiles')
+        .select('role')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        setUserRole('user');
+        return;
+      }
+
+      if (!data) {
+        // If no profile exists, create one
+        await createSellerProfile(userId);
+        setUserRole('user');
+        return;
+      }
+
+      setUserRole(data.role as 'admin' | 'seller' | 'user');
+    } catch (error) {
+      console.error('Error in fetchUserRole:', error);
+      setUserRole('user');
+    }
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -49,31 +93,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const fetchUserRole = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('seller_profiles')
-        .select('role')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user role:', error);
-        setUserRole('user'); // Default to user role if there's an error
-        return;
-      }
-
-      if (data && 'role' in data) {
-        setUserRole(data.role as 'admin' | 'seller' | 'user');
-      } else {
-        setUserRole('user'); // Default to user role if no role is found
-      }
-    } catch (error) {
-      console.error('Error in fetchUserRole:', error);
-      setUserRole('user'); // Default to user role if there's an error
-    }
-  };
-
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -94,12 +113,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUp = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { error, data } = await supabase.auth.signUp({
         email,
         password,
       });
 
       if (error) throw error;
+
+      // Create seller profile for new user
+      if (data.user) {
+        await createSellerProfile(data.user.id);
+      }
 
       toast.success('Please check your email to confirm your account');
       return { error: null };
