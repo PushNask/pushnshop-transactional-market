@@ -8,6 +8,7 @@ import { Login } from "@/pages/auth/Login";
 import { SignUp } from "@/pages/auth/SignUp";
 import { SellerRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
+import { RootLayout } from "@/components/shared/RootLayout";
 import Index from "./pages/Index";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -24,12 +25,21 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/" element={<Index />} />
+            <Route
+              path="/"
+              element={
+                <RootLayout>
+                  <Index />
+                </RootLayout>
+              }
+            />
             <Route
               path="/seller/*"
               element={
                 <SellerRoute>
-                  <SellerDashboard />
+                  <RootLayout>
+                    <SellerDashboard />
+                  </RootLayout>
                 </SellerRoute>
               }
             />
@@ -37,7 +47,9 @@ const App = () => (
               path="/admin/*"
               element={
                 <AdminRoute>
-                  <AdminDashboard />
+                  <RootLayout>
+                    <AdminDashboard />
+                  </RootLayout>
                 </AdminRoute>
               }
             />
