@@ -19,9 +19,9 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="flex">
       {/* Mobile Menu */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 bg-white border-b p-4 z-50">
+      <div className="lg:hidden fixed top-16 left-0 right-0 bg-white border-b p-4 z-30">
         <button
           onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
           className="p-2 hover:bg-gray-100 rounded-lg"
@@ -34,7 +34,7 @@ const AdminDashboard = () => {
       <aside
         className={`${
           isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0 fixed top-0 left-0 h-full w-64 bg-white border-r transition-transform duration-200 ease-in-out z-40`}
+        } lg:translate-x-0 fixed lg:static top-16 left-0 h-[calc(100vh-4rem)] w-64 bg-white border-r transition-transform duration-200 ease-in-out z-20`}
       >
         <div className="p-6">
           <h1 className="text-2xl font-bold text-gray-800">Admin Panel</h1>
@@ -102,7 +102,7 @@ const AdminDashboard = () => {
       </aside>
 
       {/* Main Content */}
-      <main className={`lg:ml-64 min-h-screen ${isMobileSidebarOpen ? 'blur-sm' : ''}`}>
+      <main className={`flex-1 ${isMobileSidebarOpen ? 'blur-sm' : ''}`}>
         <div className="p-6 mt-16 lg:mt-0">
           <Routes>
             <Route index element={<ProductApprovals />} />
@@ -116,7 +116,7 @@ const AdminDashboard = () => {
       {/* Mobile Backdrop */}
       {isMobileSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-30"
+          className="fixed inset-0 bg-black bg-opacity-50 lg:hidden z-10"
           onClick={() => setIsMobileSidebarOpen(false)}
         />
       )}
