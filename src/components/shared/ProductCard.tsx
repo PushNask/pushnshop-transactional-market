@@ -1,263 +1,150 @@
-import { useState, useEffect } from 'react';
-import { Heart, Share2, MessageCircle, Eye, Star, ChevronLeft, ChevronRight, CheckCircle2, AlertCircle } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Share2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 
-interface ProductCardProps {
+interface ProductImage {
   id: string;
-  title: string;
-  description: string;
-  price: number;
-  currency?: string;
-  location: string;
-  image: string;
-  linkNumber?: number;
-  expiresAt?: Date;
-  seller?: {
-    name: string;
-    rating: number;
-    isVerified: boolean;
-    responseTime: string;
-    shippingOptions: {
-      pickup: boolean;
-      shipping: boolean;
-    }
-  }
+  image_url: string;
+  display_order: number;
 }
 
-export const ProductCard = ({ 
-  id, 
-  title, 
-  description, 
-  price, 
-  currency = 'XAF',
-  location,
-  image,
-  linkNumber,
-  expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000),
-  seller = {
-    name: "Seller Name",
-    rating: 4.5,
-    isVerified: true,
-    responseTime: "~5 mins",
-    shippingOptions: {
-      pickup: true,
-      shipping: false
-    }
-  }
-}: ProductCardProps) => {
-  const [timeRemaining, setTimeRemaining] = useState('');
-  const [timerColor, setTimerColor] = useState('text-green-500');
-  const [isSharing, setIsSharing] = useState(false);
-  const [shareAnalytics, setShareAnalytics] = useState({
-    whatsapp: 0,
-    facebook: 0,
-    twitter: 0,
-    clipboard: 0
-  });
+interface Product {
+  id: string;
+  title: string;
+  price: number;
+  currency: string;
+  location: string;
+  category: string;
+  description?: string;
+  expires_at: string;
+  status: string;
+}
 
-  // Timer effect
-  useEffect(() => {
-    const updateTimer = () => {
-      const now = new Date();
-      const diff = expiresAt.getTime() - now.getTime();
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+interface ProductCardProps {
+  product: Product;
+  images: ProductImage[];
+}
 
-      if (hours < 0) {
-        setTimeRemaining('Expired');
-        setTimerColor('text-gray-500');
-      } else {
-        setTimeRemaining(`${hours}h ${minutes}m`);
-        if (hours < 12) {
-          setTimerColor('text-red-500');
-        } else if (hours < 24) {
-          setTimerColor('text-orange-500');
-        } else {
-          setTimerColor('text-green-500');
-        }
-      }
-    };
+export const ProductCard = ({ product, images = [] }: ProductCardProps) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const sortedImages = [...images].sort((a, b) => a.display_order - b.display_order);
 
-    updateTimer();
-    const interval = setInterval(updateTimer, 60000);
-    return () => clearInterval(interval);
-  }, [expiresAt]);
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? sortedImages.length - 1 : prev - 1
+    );
+  };
 
-  const handleShare = async (platform: string) => {
-    setIsSharing(true);
-    const productUrl = `${window.location.origin}/product/${id}`;
-    const shareText = `Check out this product: ${title}`;
-    
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === sortedImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  const handleShare = async () => {
     try {
-      switch (platform) {
-        case 'whatsapp':
-          window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + productUrl)}`, '_blank');
-          break;
-        case 'facebook':
-          window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(productUrl)}`, '_blank');
-          break;
-        case 'twitter':
-          window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(productUrl)}`, '_blank');
-          break;
-        case 'clipboard':
-          await navigator.clipboard.writeText(productUrl);
-          alert('Link copied to clipboard!');
-          break;
-      }
-      
-      setShareAnalytics(prev => ({
-        ...prev,
-        [platform]: prev[platform] + 1
-      }));
-    } catch (error) {
-      console.error('Share error:', error);
-    } finally {
-      setIsSharing(false);
+      await navigator.share({
+        title: product.title,
+        text: `Check out ${product.title} on PushNshop!`,
+        url: window.location.href,
+      });
+    } catch (err) {
+      // Fallback to copying to clipboard
+      navigator.clipboard.writeText(window.location.href);
+      toast.success('Link copied to clipboard!');
     }
   };
 
-  const formatPrice = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', {
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency: product.currency || 'XAF',
       maximumFractionDigits: 0,
-    }).format(amount);
+    }).format(price);
   };
 
   return (
-    <div className="group relative bg-white rounded-lg shadow-sm overflow-hidden transition-shadow hover:shadow-md">
-      {/* Header section */}
-      <div className="p-3 border-b">
-        <div className="flex items-center justify-between">
-          {linkNumber && (
-            <Badge variant="secondary" className="text-xs">
-              P{linkNumber}
-            </Badge>
+    <Card className="overflow-hidden">
+      <div className="relative aspect-square">
+        {sortedImages.length > 0 ? (
+          <>
+            <img
+              src={sortedImages[currentImageIndex]?.image_url || '/placeholder.svg'}
+              alt={product.title}
+              className="w-full h-full object-cover"
+            />
+            {sortedImages.length > 1 && (
+              <div className="absolute inset-0 flex items-center justify-between p-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                  onClick={handlePrevImage}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-black/20 hover:bg-black/40 text-white"
+                  onClick={handleNextImage}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center">
+            <span className="text-muted-foreground">No image available</span>
+          </div>
+        )}
+      </div>
+      
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start gap-2">
+          <div>
+            <h3 className="font-semibold truncate">{product.title}</h3>
+            <p className="text-lg font-bold text-primary">
+              {formatPrice(product.price)}
+            </p>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0"
+            onClick={handleShare}
+          >
+            <Share2 className="h-4 w-4" />
+          </Button>
+        </div>
+        <div className="mt-2 space-y-1">
+          <p className="text-sm text-muted-foreground">{product.location}</p>
+          <p className="text-sm text-muted-foreground">{product.category}</p>
+          {product.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2">
+              {product.description}
+            </p>
           )}
-          <span className={`text-sm font-medium ${timerColor}`}>
-            {timeRemaining}
+        </div>
+      </CardContent>
+      
+      <CardFooter className="p-4 pt-0">
+        <div className="w-full flex justify-between items-center text-sm">
+          <span className={`px-2 py-1 rounded-full ${
+            product.status === 'active' ? 'bg-green-100 text-green-800' :
+            product.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-red-100 text-red-800'
+          }`}>
+            {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
           </span>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="flex items-center text-sm text-gray-600">
-                  <Eye className="w-4 h-4 mr-1" />
-                  156
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>Total Views</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <span className="text-muted-foreground">
+            Expires: {new Date(product.expires_at).toLocaleDateString()}
+          </span>
         </div>
-      </div>
-
-      {/* Image section */}
-      <div className="aspect-square bg-gray-100 relative overflow-hidden">
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
-
-      {/* Content section */}
-      <div className="p-4">
-        <h3 className="font-medium text-lg mb-1 line-clamp-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-2 line-clamp-2">{description}</p>
-        <p className="text-lg font-bold text-green-600 mb-2">
-          {formatPrice(price)}
-        </p>
-
-        {/* Seller Info */}
-        <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
-          <div className="flex items-center gap-1">
-            <span className="font-medium">{seller.name}</span>
-            {seller.isVerified && (
-              <Badge variant="secondary" className="ml-1">Verified</Badge>
-            )}
-          </div>
-          <div className="flex items-center">
-            <Star className="w-4 h-4 text-yellow-400 mr-1" />
-            <span>{seller.rating.toFixed(1)}</span>
-          </div>
-        </div>
-
-        <p className="text-sm text-gray-600 mb-2">
-          📍 {location} • Response: {seller.responseTime}
-        </p>
-
-        {/* Delivery Options */}
-        <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-200">
-          <span className="text-sm font-medium text-gray-700">Delivery:</span>
-          <div className="flex gap-3">
-            {seller.shippingOptions.pickup && (
-              <div className="flex items-center text-green-600 text-sm">
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                <span>Pick-up</span>
-              </div>
-            )}
-            {seller.shippingOptions.shipping ? (
-              <div className="flex items-center text-green-600 text-sm">
-                <CheckCircle2 className="w-4 h-4 mr-1" />
-                <span>Shipping</span>
-              </div>
-            ) : (
-              <div className="flex items-center text-red-500 text-sm">
-                <AlertCircle className="w-4 h-4 mr-1" />
-                <span>No Shipping</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Actions section */}
-      <div className="p-4 pt-0 flex gap-2">
-        <Button 
-          className="flex-1 bg-green-600 hover:bg-green-700"
-          onClick={() => window.open(`https://wa.me/237612345678?text=Hi, I'm interested in: ${title}`, '_blank')}
-        >
-          <MessageCircle className="w-4 h-4 mr-2" />
-          WhatsApp
-        </Button>
-        <Button variant="outline" size="icon">
-          <Heart className="w-4 h-4" />
-        </Button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon">
-              <Share2 className="w-4 h-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => handleShare('whatsapp')}>
-              Share via WhatsApp
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('facebook')}>
-              Share on Facebook
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('twitter')}>
-              Share on Twitter
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleShare('clipboard')}>
-              Copy Link
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };

@@ -1,71 +1,94 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { ProductCard } from '@/components/shared/ProductCard';
+import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
-const MyProducts = () => {
-  const [activeTab, setActiveTab] = useState('active');
-  
-  const activeListings = [
-    {
-      id: 'p101',
-      title: 'iPhone 13 Pro',
-      price: 999,
-      duration: '48h',
-      views: 256,
-      chats: 32
+interface MyProductsProps {
+  searchQuery?: string;
+}
+
+const MyProducts = ({ searchQuery = '' }: MyProductsProps) => {
+  const { user } = useAuth();
+  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+
+  const { data: products, isLoading, error } = useQuery({
+    queryKey: ['seller-products', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('products')
+        .select(`
+          *,
+          product_images (
+            id,
+            image_url,
+            display_order
+          )
+        `)
+        .eq('seller_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching products:', error);
+        toast.error('Failed to load products');
+        throw error;
+      }
+
+      return data || [];
     },
-    {
-      id: 'p102',
-      title: 'Samsung Galaxy S24',
-      price: 899,
-      duration: '24h',
-      views: 100,
-      chats: 12
+    enabled: !!user?.id,
+  });
+
+  useEffect(() => {
+    if (products) {
+      const filtered = products.filter(product =>
+        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredProducts(filtered);
     }
-  ];
+  }, [products, searchQuery]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-destructive">Error loading products. Please try again later.</p>
+      </div>
+    );
+  }
+
+  if (!filteredProducts?.length) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-muted-foreground">
+          {searchQuery ? 'No products found matching your search.' : 'You haven\'t added any products yet.'}
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-2xl font-bold">My Products</h2>
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="flex gap-4 mb-6">
-          <button 
-            onClick={() => setActiveTab('active')}
-            className={`px-4 py-2 rounded-lg ${activeTab === 'active' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-          >
-            Active
-          </button>
-          <button 
-            onClick={() => setActiveTab('expired')}
-            className={`px-4 py-2 rounded-lg ${activeTab === 'expired' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'}`}
-          >
-            Expired
-          </button>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="text-left py-3 text-sm font-medium text-gray-500">Product</th>
-                <th className="text-left py-3 text-sm font-medium text-gray-500">Price</th>
-                <th className="text-left py-3 text-sm font-medium text-gray-500">Views</th>
-                <th className="text-left py-3 text-sm font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {activeListings.map(product => (
-                <tr key={product.id} className="border-t">
-                  <td className="py-4">{product.title}</td>
-                  <td className="py-4">${product.price}</td>
-                  <td className="py-4">{product.views}</td>
-                  <td className="py-4">
-                    <button className="text-blue-600 hover:text-blue-800">Edit</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {filteredProducts.map((product) => (
+        <ProductCard
+          key={product.id}
+          product={product}
+          images={product.product_images}
+        />
+      ))}
     </div>
   );
 };
