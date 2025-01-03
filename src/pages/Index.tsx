@@ -15,23 +15,24 @@ import {
 // Mock data generator for permanent links
 const generateMockProducts = () => {
   return Array.from({ length: 120 }, (_, i) => ({
-    id: `${i + 1}`,
-    title: `Product ${i + 1}`,
-    description: "Sample product description with details about features and condition.",
-    price: Math.floor(Math.random() * 1000000) + 100000,
-    location: "Douala, Cameroon",
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
-    linkNumber: i + 1,
-    seller: {
-      name: `Seller ${i + 1}`,
-      rating: 4 + Math.random(),
-      isVerified: Math.random() > 0.5,
-      responseTime: "~5 mins",
-      shippingOptions: {
-        pickup: Math.random() > 0.3,
-        shipping: Math.random() > 0.5
+    product: {
+      id: `${i + 1}`,
+      title: `Product ${i + 1}`,
+      description: "Sample product description with details about features and condition.",
+      price: Math.floor(Math.random() * 1000000) + 100000,
+      currency: 'XAF',
+      location: "Douala, Cameroon",
+      category: "Electronics",
+      status: "active",
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+    },
+    images: [
+      {
+        id: `img-${i}-1`,
+        image_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
+        display_order: 0
       }
-    }
+    ]
   }));
 };
 
@@ -86,8 +87,12 @@ const Index = () => {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {currentProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
+            {currentProducts.map(({ product, images }) => (
+              <ProductCard
+                key={product.id}
+                product={product}
+                images={images}
+              />
             ))}
           </div>
 
