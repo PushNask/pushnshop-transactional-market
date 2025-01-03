@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Navigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { getAllowedOrigins } from '@/utils/config';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -13,13 +14,29 @@ export function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { signIn, user, userRole } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
+
+  // Handle cross-origin messages
+  window.addEventListener('message', (event) => {
+    const allowedOrigins = getAllowedOrigins();
+    if (!allowedOrigins.includes(event.origin)) {
+      console.warn('Rejected message from unauthorized origin:', event.origin);
+      return;
+    }
+    // Handle any login-related messages
+    if (event.data.type === 'auth') {
+      // Process auth-related messages
+      console.log('Received auth message:', event.data);
+    }
+  });
 
   if (user) {
     const from = location.state?.from || '/';
     if (userRole === 'seller') {
       return <Navigate to="/seller" replace />;
+    }
+    if (userRole === 'admin') {
+      return <Navigate to="/admin" replace />;
     }
     return <Navigate to={from} replace />;
   }
@@ -29,10 +46,14 @@ export function Login() {
     setIsLoading(true);
     setError(null);
 
-    const { error } = await signIn(email, password);
-    
-    if (error) {
-      setError(error.message);
+    try {
+      const { error } = await signIn(email, password);
+      if (error) {
+        setError(error.message);
+      }
+    } catch (err) {
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
