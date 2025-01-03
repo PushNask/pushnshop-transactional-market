@@ -10,7 +10,8 @@ const config = {
   production: {
     allowedOrigins: [
       'https://gptengineer.app',
-      'https://lovable.dev'
+      'https://lovable.dev',
+      'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com'
     ]
   }
 };
@@ -18,4 +19,12 @@ const config = {
 export const getAllowedOrigins = () => {
   const env = (import.meta.env.MODE || 'development') as Environment;
   return config[env]?.allowedOrigins || config.development.allowedOrigins;
+};
+
+export const getBaseUrl = () => {
+  const env = (import.meta.env.MODE || 'development') as Environment;
+  if (env === 'development') {
+    return 'http://localhost:8080';
+  }
+  return 'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com';
 };
