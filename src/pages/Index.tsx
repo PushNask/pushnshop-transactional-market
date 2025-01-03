@@ -1,8 +1,11 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Container } from "@/components/ui/Container";
 import { ProductCard } from "@/components/shared/ProductCard";
-import { Search, Filter } from "lucide-react";
+import { Search, Filter, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { supabase } from '@/integrations/supabase/client';
 import {
   Pagination,
   PaginationContent,
@@ -12,39 +15,43 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 
-// Mock data generator for permanent links
-const generateMockProducts = () => {
-  return Array.from({ length: 120 }, (_, i) => ({
-    product: {
-      id: `${i + 1}`,
-      title: `Product ${i + 1}`,
-      description: "Sample product description with details about features and condition.",
-      price: Math.floor(Math.random() * 1000000) + 100000,
-      currency: 'XAF',
-      location: "Douala, Cameroon",
-      category: "Electronics",
-      status: "active",
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
-    },
-    images: [
-      {
-        id: `img-${i}-1`,
-        image_url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
-        display_order: 0
-      }
-    ]
-  }));
-};
+const PRODUCTS_PER_PAGE = 12;
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 12;
-  const products = generateMockProducts();
+  const [searchQuery, setSearchQuery] = useState('');
   
-  const indexOfLastProduct = currentPage * productsPerPage;
-  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
-  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['products', currentPage, searchQuery],
+    queryFn: async () => {
+      let query = supabase
+        .from('products')
+        .select(`
+          *,
+          product_images (
+            id,
+            image_url,
+            display_order
+          )
+        `)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (searchQuery) {
+        query = query.ilike('title', `%${searchQuery}%`);
+      }
+
+      const { data: products, error, count } = await query
+        .range((currentPage - 1) * PRODUCTS_PER_PAGE, currentPage * PRODUCTS_PER_PAGE - 1)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      return { products, count };
+    },
+  });
+
+  const totalPages = data?.count ? Math.ceil(data.count / PRODUCTS_PER_PAGE) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -59,10 +66,15 @@ const Index = () => {
               The trusted marketplace for buyers and sellers in Cameroon
             </p>
             <div className="relative max-w-xl mx-auto animate-slideUp" style={{ animationDelay: "0.2s" }}>
-              <input
+              <Input
                 type="text"
                 placeholder="Search products..."
                 className="w-full px-6 py-4 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white placeholder-white/70 focus:outline-none focus:ring-2 focus:ring-white/50"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
               <Button 
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/20 rounded-full transition-colors"
@@ -86,60 +98,76 @@ const Index = () => {
             </Button>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {currentProducts.map(({ product, images }) => (
-              <ProductCard
-                key={product.id}
-                product={product}
-                images={images}
-              />
-            ))}
-          </div>
-
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-[50vh]">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            </div>
+          ) : error ? (
+            <div className="text-center py-8">
+              <p className="text-destructive">Error loading products. Please try again later.</p>
+            </div>
+          ) : !data?.products?.length ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">No products found.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {data.products.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  images={product.product_images}
                 />
-              </PaginationItem>
-              
-              {Array.from({ length: totalPages }, (_, i) => i + 1)
-                .filter(page => {
-                  if (totalPages <= 7) return true;
-                  if (page === 1 || page === totalPages) return true;
-                  if (page >= currentPage - 1 && page <= currentPage + 1) return true;
-                  return false;
-                })
-                .map((page, i, array) => {
-                  if (i > 0 && array[i - 1] !== page - 1) {
+              ))}
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .filter(page => {
+                    if (totalPages <= 7) return true;
+                    if (page === 1 || page === totalPages) return true;
+                    if (page >= currentPage - 1 && page <= currentPage + 1) return true;
+                    return false;
+                  })
+                  .map((page, i, array) => {
+                    if (i > 0 && array[i - 1] !== page - 1) {
+                      return (
+                        <PaginationItem key={`ellipsis-${page}`}>
+                          <PaginationLink>...</PaginationLink>
+                        </PaginationItem>
+                      );
+                    }
                     return (
-                      <PaginationItem key={`ellipsis-${page}`}>
-                        <PaginationLink>...</PaginationLink>
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
                       </PaginationItem>
                     );
-                  }
-                  return (
-                    <PaginationItem key={page}>
-                      <PaginationLink
-                        onClick={() => setCurrentPage(page)}
-                        isActive={currentPage === page}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  );
-                })}
+                  })}
 
-              <PaginationItem>
-                <PaginationNext 
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
+                <PaginationItem>
+                  <PaginationNext 
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </Container>
       </section>
     </div>

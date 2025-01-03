@@ -1,18 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { ProductCard } from '@/components/shared/ProductCard';
+import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-interface MyProductsProps {
-  searchQuery?: string;
-}
-
-const MyProducts = ({ searchQuery = '' }: MyProductsProps) => {
+const MyProducts = () => {
   const { user } = useAuth();
-  const [filteredProducts, setFilteredProducts] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['seller-products', user?.id],
@@ -43,16 +40,11 @@ const MyProducts = ({ searchQuery = '' }: MyProductsProps) => {
     enabled: !!user?.id,
   });
 
-  useEffect(() => {
-    if (products) {
-      const filtered = products.filter(product =>
-        product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      setFilteredProducts(filtered);
-    }
-  }, [products, searchQuery]);
+  const filteredProducts = products?.filter(product =>
+    product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (isLoading) {
     return (
@@ -70,25 +62,36 @@ const MyProducts = ({ searchQuery = '' }: MyProductsProps) => {
     );
   }
 
-  if (!filteredProducts?.length) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-muted-foreground">
-          {searchQuery ? 'No products found matching your search.' : 'You haven\'t added any products yet.'}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {filteredProducts.map((product) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          images={product.product_images}
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">My Products</h1>
+        <Input
+          type="search"
+          placeholder="Search products..."
+          className="max-w-xs"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
         />
-      ))}
+      </div>
+
+      {!filteredProducts?.length ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">
+            {searchQuery ? 'No products found matching your search.' : 'You haven\'t added any products yet.'}
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              images={product.product_images}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
