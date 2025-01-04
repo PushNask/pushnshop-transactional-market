@@ -5,56 +5,67 @@ import { BrowserRouter } from 'react-router-dom';
 import Index from '@/pages/Index';
 import { supabase } from '@/integrations/supabase/client';
 
-// Mock Supabase client with a more complete implementation
+// Create a reusable mock response builder
+const createMockResponse = (data = [], count = 0) => ({
+  data,
+  count,
+  error: null
+});
+
+// Create a reusable mock builder with all PostgrestFilterBuilder methods
+const createPostgrestBuilder = (response = createMockResponse()) => ({
+  eq: vi.fn().mockReturnThis(),
+  neq: vi.fn().mockReturnThis(),
+  gt: vi.fn().mockReturnThis(),
+  gte: vi.fn().mockReturnThis(),
+  lt: vi.fn().mockReturnThis(),
+  lte: vi.fn().mockReturnThis(),
+  like: vi.fn().mockReturnThis(),
+  ilike: vi.fn().mockReturnThis(),
+  is: vi.fn().mockReturnThis(),
+  in: vi.fn().mockReturnThis(),
+  contains: vi.fn().mockReturnThis(),
+  containedBy: vi.fn().mockReturnThis(),
+  range: vi.fn().mockReturnThis(),
+  rangeLt: vi.fn().mockReturnThis(),
+  rangeGt: vi.fn().mockReturnThis(),
+  rangeGte: vi.fn().mockReturnThis(),
+  rangeLte: vi.fn().mockReturnThis(),
+  overlaps: vi.fn().mockReturnThis(),
+  textSearch: vi.fn().mockReturnThis(),
+  match: vi.fn().mockReturnThis(),
+  not: vi.fn().mockReturnThis(),
+  or: vi.fn().mockReturnThis(),
+  filter: vi.fn().mockReturnThis(),
+  order: vi.fn(() => response),
+  limit: vi.fn().mockReturnThis(),
+  offset: vi.fn().mockReturnThis(),
+  single: vi.fn().mockReturnThis(),
+  maybeSingle: vi.fn().mockReturnThis(),
+  select: vi.fn().mockReturnThis(),
+  returns: vi.fn().mockReturnThis(),
+});
+
+// Mock Supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          range: vi.fn(() => ({
-            order: vi.fn(() => ({
-              data: [
-                {
-                  id: '1',
-                  title: 'iPhone 12',
-                  price: 500000,
-                  currency: 'XAF',
-                  location: 'Douala',
-                  category: 'Electronics',
-                  status: 'active',
-                  expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-                  product_images: [
-                    { id: '1', image_url: 'test1.jpg', display_order: 0 }
-                  ]
-                }
-              ],
-              count: 1,
-              error: null
-            })),
-            ilike: vi.fn().mockReturnThis(),
-            neq: vi.fn().mockReturnThis(),
-            gt: vi.fn().mockReturnThis(),
-            gte: vi.fn().mockReturnThis(),
-            lt: vi.fn().mockReturnThis(),
-            lte: vi.fn().mockReturnThis(),
-            in: vi.fn().mockReturnThis(),
-            is: vi.fn().mockReturnThis(),
-            contains: vi.fn().mockReturnThis(),
-            containedBy: vi.fn().mockReturnThis(),
-            rangeLt: vi.fn().mockReturnThis(),
-            rangeGt: vi.fn().mockReturnThis(),
-            rangeGte: vi.fn().mockReturnThis(),
-            rangeLte: vi.fn().mockReturnThis(),
-            overlaps: vi.fn().mockReturnThis(),
-            textSearch: vi.fn().mockReturnThis(),
-            match: vi.fn().mockReturnThis(),
-            not: vi.fn().mockReturnThis(),
-            filter: vi.fn().mockReturnThis(),
-            or: vi.fn().mockReturnThis()
-          }))
-        }))
-      }))
-    })),
+      select: vi.fn(() => createPostgrestBuilder(createMockResponse([
+        {
+          id: '1',
+          title: 'iPhone 12',
+          price: 500000,
+          currency: 'XAF',
+          location: 'Douala',
+          category: 'Electronics',
+          status: 'active',
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          product_images: [
+            { id: '1', image_url: 'test1.jpg', display_order: 0 }
+          ]
+        }
+      ], 1)))
+    }))
   }
 }));
 
@@ -126,37 +137,7 @@ describe('HomePage', () => {
   it('handles empty search results gracefully', async () => {
     // Mock empty response
     vi.mocked(supabase.from).mockImplementationOnce(() => ({
-      select: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          range: vi.fn(() => ({
-            order: vi.fn(() => ({
-              data: [],
-              count: 0,
-              error: null
-            })),
-            ilike: vi.fn().mockReturnThis(),
-            neq: vi.fn().mockReturnThis(),
-            gt: vi.fn().mockReturnThis(),
-            gte: vi.fn().mockReturnThis(),
-            lt: vi.fn().mockReturnThis(),
-            lte: vi.fn().mockReturnThis(),
-            in: vi.fn().mockReturnThis(),
-            is: vi.fn().mockReturnThis(),
-            contains: vi.fn().mockReturnThis(),
-            containedBy: vi.fn().mockReturnThis(),
-            rangeLt: vi.fn().mockReturnThis(),
-            rangeGt: vi.fn().mockReturnThis(),
-            rangeGte: vi.fn().mockReturnThis(),
-            rangeLte: vi.fn().mockReturnThis(),
-            overlaps: vi.fn().mockReturnThis(),
-            textSearch: vi.fn().mockReturnThis(),
-            match: vi.fn().mockReturnThis(),
-            not: vi.fn().mockReturnThis(),
-            filter: vi.fn().mockReturnThis(),
-            or: vi.fn().mockReturnThis()
-          }))
-        }))
-      }))
+      select: vi.fn(() => createPostgrestBuilder(createMockResponse([], 0)))
     }));
 
     renderWithProviders(<Index />);
