@@ -68,6 +68,10 @@ const createPostgrestBuilder = (response = createMockResponse()) => ({
   shouldThrowOnError: false,
   signal: undefined,
   count: null,
+  // Add the newly required properties
+  fetch: vi.fn(),
+  isMaybeSingle: false,
+  setHeader: vi.fn().mockReturnThis(),
   // Final order method that returns the mock response
   order: vi.fn(() => response)
 });
