@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import Index from '@/pages/Index';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
-import type { PostgrestFilterBuilder, GenericSchema } from '@supabase/postgrest-js';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 // Mock the supabase client
 vi.mock('@/integrations/supabase/client', () => ({
@@ -38,14 +38,14 @@ vi.mock('@/integrations/supabase/client', () => ({
             error: null,
             count: 0 
           })) as unknown as PostgrestFilterBuilder<
-            GenericSchema,
+            Database['public'],
             Database['public']['Tables']['products']['Row'],
             Database['public']['Tables']['products']['Row'][],
             'products',
             Database['public']['Tables']['products']['Relationships']
           >['then']
         } as unknown as PostgrestFilterBuilder<
-          GenericSchema,
+          Database['public'],
           Database['public']['Tables']['products']['Row'],
           Database['public']['Tables']['products']['Row'][],
           'products',
