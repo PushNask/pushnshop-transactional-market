@@ -2,16 +2,18 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
+type AllowedRole = 'admin' | 'seller' | 'user';
+
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: ('admin' | 'seller' | 'user')[];
+  allowedRoles?: AllowedRole[];
   redirectTo?: string;
 }
 
-export function ProtectedRoute({ 
-  children, 
-  allowedRoles = [], 
-  redirectTo = '/login' 
+export function ProtectedRoute({
+  children,
+  allowedRoles = [],
+  redirectTo = '/login',
 }: ProtectedRouteProps) {
   const { user, userRole, loading } = useAuth();
   const location = useLocation();
@@ -29,11 +31,7 @@ export function ProtectedRoute({
 
   if (!user) {
     return (
-      <Navigate 
-        to={redirectTo} 
-        state={{ from: location.pathname }} 
-        replace 
-      />
+      <Navigate to={redirectTo} state={{ from: location.pathname }} replace />
     );
   }
 

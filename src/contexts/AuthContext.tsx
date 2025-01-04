@@ -4,28 +4,34 @@ import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
-interface AuthContextType {
+type UserRole = 'admin' | 'seller' | 'user' | null;
+
+interface AuthState {
   session: Session | null;
   user: User | null;
-  userRole: 'admin' | 'seller' | 'user' | null;
+  userRole: UserRole;
+  loading: boolean;
+}
+
+interface AuthContextType extends AuthState {
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [user, setUser] = useState<User | null>(null);
-  const [userRole, setUserRole] = useState<'admin' | 'seller' | 'user' | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authState, setAuthState] = useState<AuthState>({
+    session: null,
+    user: null,
+    userRole: null,
+    loading: true,
+  });
   const navigate = useNavigate();
 
-  const fetchUserRole = async (userId: string) => {
+  const fetchUserRole = async (userId: string): Promise<UserRole> => {
     try {
-      console.log('Fetching user role for:', userId);
       const { data, error } = await supabase
         .from('seller_profiles')
         .select('role, is_super_admin')
@@ -33,56 +39,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (error) {
-        console.error('Error fetching user role:', error);
-        toast.error('Error fetching user role');
-        setUserRole('user');
-        return;
+        throw error;
       }
 
       if (!data) {
-        console.log('No profile found, setting default role: user');
-        setUserRole('user');
-        return;
+        return 'user';
       }
 
-      console.log('Fetched role data:', data);
-      if (data.is_super_admin) {
-        setUserRole('admin');
-      } else {
-        setUserRole(data.role as 'admin' | 'seller' | 'user');
-      }
+      return data.is_super_admin ? 'admin' : (data.role as UserRole);
     } catch (error) {
-      console.error('Error in fetchUserRole:', error);
-      toast.error('Error determining user role');
-      setUserRole('user');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching user role:', error);
+      return 'user';
+    }
+  };
+
+  const updateAuthState = async (session: Session | null) => {
+    if (session?.user) {
+      const role = await fetchUserRole(session.user.id);
+      setAuthState({
+        session,
+        user: session.user,
+        userRole: role,
+        loading: false,
+      });
+    } else {
+      setAuthState({
+        session: null,
+        user: null,
+        userRole: null,
+        loading: false,
+      });
     }
   };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Initial session:', session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchUserRole(session.user.id);
-      } else {
-        setLoading(false);
-      }
+      updateAuthState(session);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      console.log('Auth state changed:', _event, session);
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        await fetchUserRole(session.user.id);
-      } else {
-        setUserRole(null);
-        setLoading(false);
-      }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      await updateAuthState(session);
     });
 
     return () => subscription.unsubscribe();
@@ -90,7 +88,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -103,14 +100,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       toast.error(error.message);
       return { error };
-    } finally {
-      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
-      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -123,15 +117,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       toast.error(error.message);
       return { error };
-    } finally {
-      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      setUserRole(null);
+      setAuthState({
+        session: null,
+        user: null,
+        userRole: null,
+        loading: false,
+      });
       toast.success('Successfully signed out');
       navigate('/login');
     } catch (error: any) {
@@ -139,17 +136,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const value = {
-    session,
-    user,
-    userRole,
-    signIn,
-    signUp,
-    signOut,
-    loading,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        ...authState,
+        signIn,
+        signUp,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
