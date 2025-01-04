@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
@@ -41,6 +41,31 @@ describe('HomePage', () => {
     
     await waitFor(() => {
       expect(searchInput).toHaveValue('Phone');
+    });
+  });
+
+  it('handles pagination correctly', async () => {
+    renderWithProviders(<Index />);
+    const nextPageButton = screen.getByRole('button', { name: /next/i });
+    
+    fireEvent.click(nextPageButton);
+    
+    await waitFor(() => {
+      expect(queryClient.getQueryData(['products'])).toBeDefined();
+    });
+  });
+
+  it('applies filters correctly', async () => {
+    renderWithProviders(<Index />);
+    const filterButton = screen.getByRole('button', { name: /filters/i });
+    
+    fireEvent.click(filterButton);
+    
+    const categorySelect = screen.getByRole('combobox', { name: /category/i });
+    fireEvent.change(categorySelect, { target: { value: 'electronics' } });
+    
+    await waitFor(() => {
+      expect(queryClient.getQueryData(['products'])).toBeDefined();
     });
   });
 });

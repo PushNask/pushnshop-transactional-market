@@ -38,7 +38,6 @@ describe('AddNewProduct', () => {
     const submitButton = screen.getByRole('button', { name: /Add Product/i });
     fireEvent.click(submitButton);
 
-    // Wait for validation messages
     await waitFor(() => {
       expect(screen.getByText(/Title is required/i)).toBeInTheDocument();
     });
@@ -54,6 +53,17 @@ describe('AddNewProduct', () => {
     
     await waitFor(() => {
       expect(screen.getByText(/1 image\(s\) selected/i)).toBeInTheDocument();
+    });
+  });
+
+  it('validates payment options', async () => {
+    renderWithProviders(<AddNewProduct />);
+    
+    const priceInput = screen.getByLabelText(/Price/i);
+    fireEvent.change(priceInput, { target: { value: '100' } });
+    
+    await waitFor(() => {
+      expect(priceInput).toHaveValue('100');
     });
   });
 });

@@ -38,3 +38,14 @@ vi.mock('react-router-dom', async () => {
     useNavigate: () => vi.fn(),
   };
 });
+
+// Mock window.navigator.share
+Object.defineProperty(window, 'navigator', {
+  value: {
+    share: vi.fn().mockImplementation(() => Promise.resolve()),
+    clipboard: {
+      writeText: vi.fn().mockImplementation(() => Promise.resolve()),
+    },
+  },
+  writable: true,
+});
