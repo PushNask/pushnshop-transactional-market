@@ -34,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error('Error fetching user role:', error);
+        toast.error('Error fetching user role');
         setUserRole('user');
         return;
       }
@@ -45,7 +46,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log('Fetched role data:', data);
-      // If user is super admin, set role as admin
       if (data.is_super_admin) {
         setUserRole('admin');
       } else {
@@ -53,33 +53,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
+      toast.error('Error determining user role');
       setUserRole('user');
+    } finally {
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserRole(session.user.id);
+      } else {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
-    // Listen for changes in auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       console.log('Auth state changed:', _event, session);
       setSession(session);
       setUser(session?.user ?? null);
+      
       if (session?.user) {
         await fetchUserRole(session.user.id);
       } else {
         setUserRole(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
@@ -87,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -99,11 +103,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       toast.error(error.message);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signUp = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -116,12 +123,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error: any) {
       toast.error(error.message);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      setUserRole(null);
       toast.success('Successfully signed out');
       navigate('/login');
     } catch (error: any) {

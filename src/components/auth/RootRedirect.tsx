@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 const RootRedirect: React.FC = () => {
   const { user, userRole, loading } = useAuth();
@@ -11,14 +12,16 @@ const RootRedirect: React.FC = () => {
     console.log('RootRedirect - Current user:', user);
     console.log('RootRedirect - Current role:', userRole);
     
-    // Set a timeout to prevent infinite loading
     const timer = setTimeout(() => {
       console.log('Timeout reached');
       setTimeoutReached(true);
+      if (loading) {
+        toast.error('Loading took too long. Please try again.');
+      }
     }, 5000);
 
     return () => clearTimeout(timer);
-  }, [user, userRole]);
+  }, [user, userRole, loading]);
 
   // Show loading state only if we're still loading and within timeout
   if (loading && !timeoutReached) {
@@ -38,9 +41,10 @@ const RootRedirect: React.FC = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // If authenticated but no role or timeout reached, redirect to home
+  // If authenticated but no role or timeout reached, show error and redirect to home
   if (!userRole || timeoutReached) {
     console.log('No user role or timeout reached, redirecting to home');
+    toast.error('Could not determine user role. Please try logging in again.');
     return <Navigate to="/" replace />;
   }
 
