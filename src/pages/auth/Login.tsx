@@ -5,7 +5,6 @@ import { Eye, EyeOff, Mail, Lock, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { getAllowedOrigins } from '@/utils/config';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -15,8 +14,6 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const { signIn, user, userRole } = useAuth();
   const location = useLocation();
-
-
 
   if (user) {
     const from = location.state?.from || '/';
@@ -34,10 +31,23 @@ export function Login() {
     setIsLoading(true);
     setError(null);
 
+    if (!email || !password) {
+      setError('Please enter both email and password');
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { error } = await signIn(email, password);
       if (error) {
-        setError(error.message);
+        // Handle specific error cases
+        if (error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Please try again.');
+        } else if (error.message.includes('Email not confirmed')) {
+          setError('Please confirm your email address before logging in. Check your inbox for the confirmation link.');
+        } else {
+          setError(error.message);
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
