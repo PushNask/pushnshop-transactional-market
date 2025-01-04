@@ -24,6 +24,8 @@ const createMockUser = (email: string): User => ({
   confirmed_at: new Date().toISOString(),
   email_confirmed_at: new Date().toISOString(),
   phone_confirmed_at: null,
+  last_sign_in_at: new Date().toISOString(),
+  role: null,
   identities: [],
   factors: []
 });
