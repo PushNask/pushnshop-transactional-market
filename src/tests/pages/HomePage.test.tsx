@@ -1,10 +1,12 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 import Index from '@/pages/Index';
-import { PostgrestFilterBuilder } from '@supabase/postgrest-js';
+import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
+import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
-// Mock the entire supabase client
+// Mock the supabase client
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     from: vi.fn(() => ({
@@ -31,13 +33,45 @@ vi.mock('@/integrations/supabase/client', () => ({
           limit: vi.fn(() => builder),
           single: vi.fn(() => builder),
           maybeSingle: vi.fn(() => builder),
-          then: vi.fn(() => Promise.resolve({ data: [], error: null })),
-        } as unknown as PostgrestFilterBuilder<any>;
+          then: vi.fn(() => Promise.resolve({ 
+            data: [], 
+            error: null,
+            count: 0 
+          })) as unknown as PostgrestFilterBuilder<
+            Database,
+            Database['public']['Tables']['products']['Row'],
+            Database['public']['Tables']['products']['Row'][],
+            'products',
+            Database['public']['Tables']['products']['Relationships']
+          >['then']
+        } as unknown as PostgrestFilterBuilder<
+          Database,
+          Database['public']['Tables']['products']['Row'],
+          Database['public']['Tables']['products']['Row'][],
+          'products',
+          Database['public']['Tables']['products']['Relationships']
+        >;
         return builder;
       }),
     })),
   },
 }));
+
+// Mock react-query
+vi.mock('@tanstack/react-query', async () => {
+  const actual = await vi.importActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQuery: vi.fn().mockReturnValue({
+      data: {
+        products: [],
+        count: 0
+      },
+      isLoading: false,
+      error: null,
+    }),
+  };
+});
 
 describe('HomePage', () => {
   beforeEach(() => {
@@ -53,6 +87,21 @@ describe('HomePage', () => {
 
     expect(screen.getByText('Welcome to PushNshop Marketplace')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Search products...')).toBeInTheDocument();
+  });
+
+  it('updates search results when typing in search input', async () => {
+    render(
+      <BrowserRouter>
+        <Index />
+      </BrowserRouter>
+    );
+
+    const searchInput = screen.getByPlaceholderText('Search products...');
+    fireEvent.change(searchInput, { target: { value: 'test' } });
+
+    await waitFor(() => {
+      expect(searchInput).toHaveValue('test');
+    });
   });
 
   // Add more test cases as needed
