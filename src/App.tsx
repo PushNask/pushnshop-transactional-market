@@ -6,9 +6,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { Login } from "@/pages/auth/Login";
 import { SignUp } from "@/pages/auth/SignUp";
-import { SellerRoute } from "@/components/auth/ProtectedRoute";
+import { SellerRoute, ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { AdminRoute } from "@/components/auth/AdminRoute";
 import { RootLayout } from "@/components/shared/RootLayout";
+import { RootRedirect } from "@/components/auth/RootRedirect";
 import Index from "./pages/Index";
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -25,8 +26,9 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/" element={<RootRedirect />} />
             <Route
-              path="/"
+              path="/home"
               element={
                 <RootLayout>
                   <Index />
