@@ -16,19 +16,7 @@ export function Login() {
   const { signIn, user, userRole } = useAuth();
   const location = useLocation();
 
-  // Handle cross-origin messages
-  window.addEventListener('message', (event) => {
-    const allowedOrigins = getAllowedOrigins();
-    if (!allowedOrigins.includes(event.origin)) {
-      console.warn('Rejected message from unauthorized origin:', event.origin);
-      return;
-    }
-    // Handle any login-related messages
-    if (event.data.type === 'auth') {
-      // Process auth-related messages
-      console.log('Received auth message:', event.data);
-    }
-  });
+
 
   if (user) {
     const from = location.state?.from || '/';
