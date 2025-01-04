@@ -30,9 +30,14 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: mode === 'development' ? '/' : 'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com',
+  base: mode === 'development' 
+    ? '/' 
+    : 'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com',
   preview: {
     port: 8080,
-    host: true
+    host: true,
+    headers: {
+      'Access-Control-Allow-Origin': '*'
+    }
   }
 }));

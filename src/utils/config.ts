@@ -26,5 +26,6 @@ export const getAllowedOrigins = () => {
 
 export const getBaseUrl = () => {
   const env = (import.meta.env.MODE || 'development') as Environment;
-  return config[env]?.baseUrl || config.development.baseUrl;
+  const baseUrl = config[env]?.baseUrl || config.development.baseUrl;
+  return baseUrl.replace(/\/$/, ''); // Remove trailing slash if present
 };
