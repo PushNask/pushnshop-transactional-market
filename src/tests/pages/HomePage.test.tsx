@@ -34,16 +34,16 @@ vi.mock('@/integrations/supabase/client', () => ({
           }))
         }))
       }))
-    })
+    }))
   }
 }));
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false
-    }
-  }
+      retry: false,
+    },
+  },
 });
 
 const renderWithProviders = (component: React.ReactNode) => {
