@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ProductCard } from '@/components/shared/ProductCard';
 
@@ -44,17 +44,17 @@ describe('ProductCard', () => {
   it('handles image carousel navigation', () => {
     render(<ProductCard product={mockProduct} images={mockImages} />);
     
-    const nextButton = screen.getByLabelText('Next image');
+    const nextButton = screen.getByRole('button', { name: /next/i });
     fireEvent.click(nextButton);
     
-    const prevButton = screen.getByLabelText('Previous image');
+    const prevButton = screen.getByRole('button', { name: /previous/i });
     fireEvent.click(prevButton);
   });
 
   it('handles share functionality', async () => {
     render(<ProductCard product={mockProduct} images={mockImages} />);
     
-    const shareButton = screen.getByLabelText('Share');
+    const shareButton = screen.getByRole('button', { name: /share/i });
     fireEvent.click(shareButton);
     
     expect(window.navigator.share).toHaveBeenCalled();
