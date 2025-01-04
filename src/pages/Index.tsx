@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Container } from "@/components/ui/Container";
 import { ProductCard } from "@/components/shared/ProductCard";
-import { Search, Filter, Loader2 } from "lucide-react";
+import { Search, Filter } from "lucide-react";
+import SkeletonCard from "@/components/shared/SkeletonCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from '@/integrations/supabase/client';
@@ -99,8 +100,10 @@ const Index = () => {
           </div>
           
           {isLoading ? (
-            <div className="flex items-center justify-center min-h-[50vh]">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {Array.from({ length: PRODUCTS_PER_PAGE }).map((_, index) => (
+                <SkeletonCard key={index} />
+              ))}
             </div>
           ) : error ? (
             <div className="text-center py-8">
