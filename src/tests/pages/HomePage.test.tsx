@@ -60,6 +60,15 @@ const createPostgrestBuilder = (response = createMockResponse()) => ({
   snapshot: vi.fn().mockReturnThis(),
   then: vi.fn().mockReturnThis(),
   throwOnError: vi.fn().mockReturnThis(),
+  // Add required properties from PostgrestFilterBuilder
+  method: 'GET',
+  url: 'https://example.com',
+  headers: {},
+  schema: 'public',
+  shouldThrowOnError: false,
+  signal: undefined,
+  count: null,
+  // Final order method that returns the mock response
   order: vi.fn(() => response)
 });
 
