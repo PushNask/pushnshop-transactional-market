@@ -14,100 +14,118 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export function MainNav() {
-  const { user, userRole } = useAuth();
+  const { user, userRole, signOut } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
 
   return (
     <div className="relative">
-      {/* Mobile Menu Button */}
-      <div className="flex items-center justify-between w-full lg:hidden">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="lg:hidden"
-          onClick={() => setIsOpen(!isOpen)}
-        >
-          {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </Button>
+      {/* Mobile Navigation */}
+      <div className="lg:hidden w-full">
+        <div className="flex items-center justify-between w-full">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden"
+            onClick={() => setIsOpen(!isOpen)}
+          >
+            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </Button>
 
-        {!user && (
-          <div className="flex gap-2">
-            <Button variant="ghost" asChild size="sm">
-              <Link to="/login">Login</Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link to="/signup">Sign Up</Link>
-            </Button>
-          </div>
-        )}
+          {!user && (
+            <div className="flex gap-2">
+              <Button variant="ghost" asChild size="sm">
+                <Link to="/login">Login</Link>
+              </Button>
+              <Button asChild size="sm">
+                <Link to="/signup">Sign Up</Link>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* Mobile Menu Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-20 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
       {/* Mobile Menu */}
-      <div
-        className={`${
-          isOpen ? "block" : "hidden"
-        } lg:hidden fixed inset-0 top-16 z-50 bg-background border-t`}
-      >
-        <nav className="container px-4 py-6">
-          <div className="space-y-4">
-            <Link
-              to="/categories"
-              className="block p-2 hover:bg-accent rounded-md"
-              onClick={() => setIsOpen(false)}
-            >
-              Browse Categories
-            </Link>
-            <Link
-              to="/featured"
-              className="block p-2 hover:bg-accent rounded-md"
-              onClick={() => setIsOpen(false)}
-            >
-              Featured Products
-            </Link>
+      {isOpen && (
+        <div className="fixed inset-0 top-16 z-30 bg-background border-t lg:hidden">
+          <nav className="container px-4 py-6">
+            <div className="space-y-4">
+              <Link
+                to="/categories"
+                className="block p-2 hover:bg-accent rounded-md"
+                onClick={() => setIsOpen(false)}
+              >
+                Browse Categories
+              </Link>
 
-            {userRole === "seller" && (
-              <>
-                <Link
-                  to="/seller"
-                  className="block p-2 hover:bg-accent rounded-md"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Seller Dashboard
-                </Link>
-                <Link
-                  to="/seller/add"
-                  className="block p-2 hover:bg-accent rounded-md"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Add New Product
-                </Link>
-              </>
-            )}
+              <Link
+                to="/featured"
+                className="block p-2 hover:bg-accent rounded-md"
+                onClick={() => setIsOpen(false)}
+              >
+                Featured Products
+              </Link>
 
-            {userRole === "admin" && (
-              <>
-                <Link
-                  to="/admin"
-                  className="block p-2 hover:bg-accent rounded-md"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Admin Dashboard
-                </Link>
-                <Link
-                  to="/admin/manage"
-                  className="block p-2 hover:bg-accent rounded-md"
-                  onClick={() => setIsOpen(false)}
-                >
-                  Admin Management
-                </Link>
-              </>
-            )}
-          </div>
-        </nav>
-      </div>
+              {typeof userRole === "string" && userRole === "seller" && (
+                <>
+                  <Link
+                    to="/seller"
+                    className="block p-2 hover:bg-accent rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Seller Dashboard
+                  </Link>
+                  <Link
+                    to="/seller/add"
+                    className="block p-2 hover:bg-accent rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Add New Product
+                  </Link>
+                </>
+              )}
 
-      {/* Desktop Navigation */}
-      <NavigationMenu className="hidden lg:block">
+              {typeof userRole === "string" && userRole === "admin" && (
+                <>
+                  <Link
+                    to="/admin"
+                    className="block p-2 hover:bg-accent rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin Dashboard
+                  </Link>
+                  <Link
+                    to="/admin/manage"
+                    className="block p-2 hover:bg-accent rounded-md"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Admin Management
+                  </Link>
+                </>
+              )}
+
+              {user && typeof userRole === "string" && (
+                <Link
+                  to={userRole === "admin" ? "/admin" : userRole === "seller" ? "/seller" : "/home"}
+                  className="block p-2 hover:bg-accent rounded-md font-medium text-primary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Dashboard
+                </Link>
+              )}
+            </div>
+          </nav>
+        </div>
+      )}
+
+      <NavigationMenu className="hidden lg:flex">
         <NavigationMenuList>
           <NavigationMenuItem>
             <NavigationMenuTrigger>Products</NavigationMenuTrigger>
@@ -147,8 +165,8 @@ export function MainNav() {
             </NavigationMenuContent>
           </NavigationMenuItem>
 
-          {userRole === "seller" && (
-            <NavigationMenuItem>
+          {typeof userRole === "string" ? (userRole === "seller" ? (
+            <NavigationMenuItem className="hidden lg:flex">
               <NavigationMenuTrigger>Seller</NavigationMenuTrigger>
               <NavigationMenuContent>
                 <ul className="grid w-[400px] gap-3 p-4">
@@ -179,9 +197,21 @@ export function MainNav() {
                 </ul>
               </NavigationMenuContent>
             </NavigationMenuItem>
+          ) : null) : (
+            <NavigationMenuItem>
+              <Button 
+                variant="ghost"
+                asChild
+                className="text-primary hover:text-primary/90"
+              >
+                <Link to={typeof userRole === "string" && (userRole === "admin" || userRole === "seller") ? (userRole === "admin" ? "/admin" : "/seller") : "/home"}>
+                  Dashboard
+                </Link>
+              </Button>
+            </NavigationMenuItem>
           )}
 
-          {userRole === "admin" && (
+          {typeof userRole === "string" && userRole === "admin" && (
             <NavigationMenuItem>
               <NavigationMenuTrigger>Admin</NavigationMenuTrigger>
               <NavigationMenuContent>
@@ -239,13 +269,7 @@ export function MainNav() {
         </NavigationMenuList>
       </NavigationMenu>
 
-      {/* Mobile Menu Backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
+
     </div>
   );
 }
