@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => ({
       }
     },
     headers: {
-      'Content-Security-Policy': `frame-ancestors 'self' https://preview--pushnshop-transactional-market.lovable.app https://gptengineer.app https://lovable.dev http://localhost:3000 http://localhost:8080 https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com`
+      'Content-Security-Policy': `frame-ancestors 'self' https://preview--pushnshop-transactional-market.lovable.app https://gptengineer.app https://lovable.dev http://localhost:3000 http://localhost:8080 https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com`,
+      'Access-Control-Allow-Origin': '*'
     }
   },
   plugins: [
@@ -30,18 +31,8 @@ export default defineConfig(({ mode }) => ({
     },
   },
   base: mode === 'development' ? '/' : 'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com',
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/tests/setupTests.ts'],
-    coverage: {
-      provider: 'c8',
-      reporter: ['text', 'html'],
-      exclude: [
-        'node_modules/',
-        'src/tests/setupTests.ts',
-      ],
-    },
-    include: ['src/**/*.{test,spec}.{js,jsx,ts,tsx}'],
-  },
+  preview: {
+    port: 8080,
+    host: true
+  }
 }));
