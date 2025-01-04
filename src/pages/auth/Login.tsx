@@ -31,26 +31,42 @@ export function Login() {
     setIsLoading(true);
     setError(null);
 
-    if (!email || !password) {
-      setError('Please enter both email and password');
+    // Basic validation
+    if (!email.trim()) {
+      setError('Please enter your email address');
+      setIsLoading(false);
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter your password');
+      setIsLoading(false);
+      return;
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
       setIsLoading(false);
       return;
     }
 
     try {
-      const { error } = await signIn(email, password);
-      if (error) {
-        // Handle specific error cases
-        if (error.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password. Please try again.');
-        } else if (error.message.includes('Email not confirmed')) {
-          setError('Please confirm your email address before logging in. Check your inbox for the confirmation link.');
+      const { error: signInError } = await signIn(email, password);
+      if (signInError) {
+        // Handle specific error cases with user-friendly messages
+        if (signInError.message.includes('Invalid login credentials')) {
+          setError('The email or password you entered is incorrect. Please try again.');
+        } else if (signInError.message.includes('Email not confirmed')) {
+          setError('Please verify your email address before logging in. Check your inbox for the confirmation link.');
         } else {
-          setError(error.message);
+          setError(signInError.message || 'An error occurred while signing in. Please try again.');
         }
       }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      setError('An unexpected error occurred. Please try again later.');
+      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +104,7 @@ export function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -106,11 +123,13 @@ export function Login() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
