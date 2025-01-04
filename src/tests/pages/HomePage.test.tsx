@@ -20,7 +20,7 @@ vi.mock('@/integrations/supabase/client', () => ({
                   price: 500000,
                   currency: 'XAF',
                   location: 'Douala',
-                  category: 'electronics',
+                  category: 'Electronics',
                   status: 'active',
                   expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
                   product_images: [
@@ -41,9 +41,9 @@ vi.mock('@/integrations/supabase/client', () => ({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: false,
-    },
-  },
+      retry: false
+    }
+  }
 });
 
 const renderWithProviders = (component: React.ReactNode) => {
