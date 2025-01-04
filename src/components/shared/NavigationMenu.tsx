@@ -111,9 +111,9 @@ export function MainNav() {
                 </>
               )}
 
-              {user && typeof userRole === "string" && (
+              {user && (
                 <Link
-                  to={userRole === "admin" ? "/admin" : userRole === "seller" ? "/seller" : "/home"}
+                  to="/dashboard"
                   className="block p-2 hover:bg-accent rounded-md font-medium text-primary"
                   onClick={() => setIsOpen(false)}
                 >
@@ -204,7 +204,7 @@ export function MainNav() {
                 asChild
                 className="text-primary hover:text-primary/90"
               >
-                <Link to={typeof userRole === "string" && (userRole === "admin" || userRole === "seller") ? (userRole === "admin" ? "/admin" : "/seller") : "/home"}>
+                <Link to="/dashboard">
                   Dashboard
                 </Link>
               </Button>
