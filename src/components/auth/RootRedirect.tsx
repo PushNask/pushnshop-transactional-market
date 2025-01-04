@@ -28,24 +28,24 @@ const RootRedirect: React.FC = () => {
     );
   }
 
+  // If not authenticated, redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
-  // If we have a user but no role or timeout reached, redirect to home
+  // If authenticated but no role or timeout reached, redirect to home
   if (!userRole || timeoutReached) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/" replace />;
   }
 
+  // Redirect based on user role
   switch (userRole) {
     case 'admin':
       return <Navigate to="/admin" replace />;
     case 'seller':
       return <Navigate to="/seller" replace />;
-    case 'user':
-      return <Navigate to="/home" replace />;
     default:
-      return <Navigate to="/home" replace />;
+      return <Navigate to="/" replace />;
   }
 };
 
