@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from('seller_profiles')
         .select('role, is_super_admin')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         throw error;
@@ -48,21 +48,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       return data.is_super_admin ? 'admin' : (data.role as UserRole);
     } catch (error) {
-      console.error('Error fetching user role:', error);
-      return 'user';
+      toast.error('Error fetching user role. Please try logging in again.');
+      return null;
     }
   };
 
   const updateAuthState = async (session: Session | null) => {
-    if (session?.user) {
-      const role = await fetchUserRole(session.user.id);
-      setAuthState({
-        session,
-        user: session.user,
-        userRole: role,
-        loading: false,
-      });
-    } else {
+    try {
+      if (session?.user) {
+        const role = await fetchUserRole(session.user.id);
+        setAuthState({
+          session,
+          user: session.user,
+          userRole: role,
+          loading: false,
+        });
+      } else {
+        setAuthState({
+          session: null,
+          user: null,
+          userRole: null,
+          loading: false,
+        });
+      }
+    } catch (error) {
       setAuthState({
         session: null,
         user: null,
@@ -73,17 +82,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     supabase.auth.getSession().then(({ data: { session } }) => {
-      updateAuthState(session);
+      if (mounted) {
+        updateAuthState(session);
+      }
     });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      await updateAuthState(session);
+      if (mounted) {
+        await updateAuthState(session);
+      }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

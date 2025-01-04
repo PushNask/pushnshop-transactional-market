@@ -8,15 +8,21 @@ const RootRedirect = () => {
   const { user, userRole, loading } = useAuth();
 
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     if (loading && !user) {
-      const timer = setTimeout(() => {
+      timeoutId = setTimeout(() => {
         if (!userRole) {
           toast.error('Could not determine user role. Please try logging in again.');
         }
       }, 5000);
-
-      return () => clearTimeout(timer);
     }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [loading, user, userRole]);
 
   if (loading) {
