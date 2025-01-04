@@ -23,29 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  const createSellerProfile = async (userId: string) => {
-    const { error } = await supabase
-      .from('seller_profiles')
-      .insert([
-        { 
-          id: userId,
-          name: user?.email?.split('@')[0] || 'User',
-          role: 'user'
-        }
-      ]);
-    
-    if (error && error.code !== '23505') { // Ignore unique violation errors
-      console.error('Error creating seller profile:', error);
-    }
-  };
-
   const fetchUserRole = async (userId: string) => {
     try {
+      console.log('Fetching user role for:', userId);
       const { data, error } = await supabase
         .from('seller_profiles')
-        .select('role')
+        .select('role, is_super_admin')
         .eq('id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) {
         console.error('Error fetching user role:', error);
@@ -54,13 +39,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!data) {
-        // If no profile exists, create one
-        await createSellerProfile(userId);
+        console.log('No profile found, setting default role: user');
         setUserRole('user');
         return;
       }
 
-      setUserRole(data.role as 'admin' | 'seller' | 'user');
+      console.log('Fetched role data:', data);
+      // If user is super admin, set role as admin
+      if (data.is_super_admin) {
+        setUserRole('admin');
+      } else {
+        setUserRole(data.role as 'admin' | 'seller' | 'user');
+      }
     } catch (error) {
       console.error('Error in fetchUserRole:', error);
       setUserRole('user');
@@ -70,6 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('Initial session:', session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -80,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for changes in auth state
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log('Auth state changed:', _event, session);
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -118,11 +110,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (error) throw error;
-
-      // Create seller profile for new user
-      if (data.user) {
-        await createSellerProfile(data.user.id);
-      }
 
       toast.success('Please check your email to confirm your account');
       return { error: null };

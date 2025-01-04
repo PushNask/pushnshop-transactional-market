@@ -8,13 +8,17 @@ const RootRedirect: React.FC = () => {
   const [timeoutReached, setTimeoutReached] = useState(false);
 
   useEffect(() => {
+    console.log('RootRedirect - Current user:', user);
+    console.log('RootRedirect - Current role:', userRole);
+    
     // Set a timeout to prevent infinite loading
     const timer = setTimeout(() => {
+      console.log('Timeout reached');
       setTimeoutReached(true);
-    }, 5000); // Reduced from 30s to 5s for better UX
+    }, 5000);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [user, userRole]);
 
   // Show loading state only if we're still loading and within timeout
   if (loading && !timeoutReached) {
@@ -30,6 +34,7 @@ const RootRedirect: React.FC = () => {
 
   // If not authenticated, redirect to login
   if (!user) {
+    console.log('No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
 
@@ -40,6 +45,7 @@ const RootRedirect: React.FC = () => {
   }
 
   // Redirect based on user role
+  console.log('Redirecting based on role:', userRole);
   switch (userRole) {
     case 'admin':
       return <Navigate to="/admin" replace />;
