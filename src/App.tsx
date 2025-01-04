@@ -26,15 +26,15 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/" element={<RootRedirect />} />
             <Route
-              path="/home"
+              path="/"
               element={
                 <RootLayout>
                   <Index />
                 </RootLayout>
               }
             />
+            <Route path="/dashboard" element={<RootRedirect />} />
             <Route
               path="/seller/*"
               element={
