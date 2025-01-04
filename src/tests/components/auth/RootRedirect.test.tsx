@@ -3,11 +3,34 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { RootRedirect } from '@/components/auth/RootRedirect';
 import { BrowserRouter } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { User } from '@supabase/supabase-js';
 
 // Mock the useAuth hook
 vi.mock('@/contexts/AuthContext', () => ({
   useAuth: vi.fn()
 }));
+
+// Create a mock user with all required properties
+const createMockUser = (email: string): User => ({
+  id: '1',
+  email,
+  app_metadata: {},
+  user_metadata: {},
+  aud: 'authenticated',
+  created_at: new Date().toISOString(),
+  role: '',
+  updated_at: new Date().toISOString(),
+  phone: '',
+  confirmation_sent_at: null,
+  confirmed_at: new Date().toISOString(),
+  last_sign_in_at: new Date().toISOString(),
+  email_confirmed_at: new Date().toISOString(),
+  phone_confirmed_at: null,
+  banned_until: null,
+  deleted_at: null,
+  identities: [],
+  factors: []
+});
 
 describe('RootRedirect', () => {
   beforeEach(() => {
@@ -58,7 +81,7 @@ describe('RootRedirect', () => {
 
   it('redirects admin users to admin dashboard', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'admin@test.com' },
+      user: createMockUser('admin@test.com'),
       userRole: 'admin',
       loading: false,
       signIn: vi.fn(),
@@ -80,7 +103,7 @@ describe('RootRedirect', () => {
 
   it('redirects seller users to seller dashboard', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'seller@test.com' },
+      user: createMockUser('seller@test.com'),
       userRole: 'seller',
       loading: false,
       signIn: vi.fn(),
@@ -102,7 +125,7 @@ describe('RootRedirect', () => {
 
   it('redirects to home after timeout if no role is assigned', async () => {
     vi.mocked(useAuth).mockReturnValue({
-      user: { id: '1', email: 'user@test.com' },
+      user: createMockUser('user@test.com'),
       userRole: null,
       loading: false,
       signIn: vi.fn(),
