@@ -18,16 +18,12 @@ const createMockUser = (email: string): User => ({
   user_metadata: {},
   aud: 'authenticated',
   created_at: new Date().toISOString(),
-  role: '',
   updated_at: new Date().toISOString(),
   phone: '',
   confirmation_sent_at: null,
   confirmed_at: new Date().toISOString(),
-  last_sign_in_at: new Date().toISOString(),
   email_confirmed_at: new Date().toISOString(),
   phone_confirmed_at: null,
-  banned_until: null,
-  deleted_at: null,
   identities: [],
   factors: []
 });
