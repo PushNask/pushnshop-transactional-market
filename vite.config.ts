@@ -16,8 +16,10 @@ export default defineConfig(({ mode }) => ({
       }
     },
     headers: {
-      'Content-Security-Policy': `frame-ancestors 'self' https://preview--pushnshop-transactional-market.lovable.app https://gptengineer.app https://lovable.dev http://localhost:3000 http://localhost:8080 https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com`,
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization',
+      'Content-Security-Policy': `frame-ancestors 'self' https://preview--pushnshop-transactional-market.lovable.app https://gptengineer.app https://lovable.dev http://localhost:3000 http://localhost:8080 https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com`
     }
   },
   plugins: [
@@ -37,7 +39,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     host: true,
     headers: {
-      'Access-Control-Allow-Origin': '*'
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET,HEAD,PUT,PATCH,POST,DELETE',
+      'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept, Authorization'
     }
   }
 }));
