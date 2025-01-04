@@ -11,12 +11,12 @@ const RootRedirect: React.FC = () => {
     // Set a timeout to prevent infinite loading
     const timer = setTimeout(() => {
       setTimeoutReached(true);
-    }, 5000); // 5 seconds timeout
+    }, 5000); // Reduced from 30s to 5s for better UX
 
     return () => clearTimeout(timer);
   }, []);
 
-  // Show loading state only if we're still within the timeout period
+  // Show loading state only if we're still loading and within timeout
   if (loading && !timeoutReached) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -35,6 +35,7 @@ const RootRedirect: React.FC = () => {
 
   // If authenticated but no role or timeout reached, redirect to home
   if (!userRole || timeoutReached) {
+    console.log('No user role or timeout reached, redirecting to home');
     return <Navigate to="/" replace />;
   }
 
