@@ -33,7 +33,6 @@ const createPostgrestBuilder = (response = createMockResponse()) => ({
   not: vi.fn().mockReturnThis(),
   or: vi.fn().mockReturnThis(),
   filter: vi.fn().mockReturnThis(),
-  order: vi.fn().mockReturnThis(),
   limit: vi.fn().mockReturnThis(),
   offset: vi.fn().mockReturnThis(),
   single: vi.fn().mockReturnThis(),
@@ -53,7 +52,14 @@ const createPostgrestBuilder = (response = createMockResponse()) => ({
   rangeGte: vi.fn().mockReturnThis(),
   rangeLte: vi.fn().mockReturnThis(),
   rangeAdjacent: vi.fn().mockReturnThis(),
-  // Add final order method that returns the mock response
+  abortSignal: vi.fn().mockReturnThis(),
+  csv: vi.fn().mockReturnThis(),
+  geojson: vi.fn().mockReturnThis(),
+  explain: vi.fn().mockReturnThis(),
+  rollback: vi.fn().mockReturnThis(),
+  snapshot: vi.fn().mockReturnThis(),
+  then: vi.fn().mockReturnThis(),
+  throwOnError: vi.fn().mockReturnThis(),
   order: vi.fn(() => response)
 });
 
