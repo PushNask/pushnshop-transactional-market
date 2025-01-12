@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'https://8d360240-531c-438d-b359-b1c65e377469.lovableproject.com',
+        target: 'https://sepnkuvrmdcxjbxpyime.supabase.co',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api/, '')
